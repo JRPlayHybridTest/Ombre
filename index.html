@@ -1,0 +1,327 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script async src="https://unpkg.com/es-module-shims@1.7.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+      "imports": {
+	"three": "https://unpkg.com/three@0.153.0/build/three.module.js",
+	"three/addons/": "https://unpkg.com/three@0.153.0/examples/jsm/",
+	"mindar-face-three":"https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-face-three.prod.js",
+  "fbxloader":"https://unpkg.com/three@0.153.0/examples/jsm/loaders/FBXLoader.js"
+      }
+    }
+    </script>
+    <script type="module" src="https://cdn.jsdelivr.net/gh/jrplayhybridtest/ombre@master/script.js"></script>
+    <style>
+      body {
+	      margin: 0;
+      }
+      
+      video {
+      }
+      #screenshot, #canvas {
+        width:100%;
+        height:100%;
+        position:absolute;
+        object-fit:contain;
+        overflow:hidden;
+      }
+      #offscreen-canvas, #threshold-canvas, #t3-canvas, #brightness-canvas {
+        display:none;
+        width:100%;
+        height:100%;
+        position:absolute;
+        object-fit:contain;
+        overflow:hidden;
+      }
+      
+      #screenshot {        
+        z-index: 10;
+      }
+      
+      #container {
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+      }
+      
+      #ui-container {
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+        z-index: 10;
+      }
+      
+      #screenshot-overlay {
+        position:relative;
+        overflow:hidden;
+        width:100%;
+        height:100%;
+        z-index: 6;
+      }
+      
+      #container, #ui-container {
+        opacity:0;
+        width: 50vw;
+        height: 50vw;
+        position: absolute;
+        overflow: hidden;
+      }
+      
+      #control {
+        position:absolute;
+        width:100%;
+        height: 100%;
+        bottom:0%;
+        left: 0%;
+      }
+      
+      #startButton {
+        height:15%;
+        max-width: 500px;
+        position:absolute;
+        bottom: 20%;
+        left: 50%;       
+        transform: translate(-50%,0);
+        z-index: 16;
+      }
+      
+      #background {
+        position: absolute;
+        left: 50%;       
+        transform: translate(-50%,0);
+        bottom: 0;
+        height:100%;
+        z-index: 9;
+        opacity: 100%;
+      }
+      
+      #background-circle {
+        position: absolute;
+        left: 50%;       
+        transform: translate(-50%,0);
+        bottom: 33%;
+        height:46%;
+        z-index: 10;
+      }      
+      
+      
+      
+      #background-combined {
+        position: absolute;
+        left: 50%;       
+        transform: translate(-50%,0);
+        bottom: 0;
+        height:100%;
+        z-index: 9;
+        opacity: 80%;
+      }
+      
+      #intro-title {
+        position: absolute;
+        left: 50%;       
+        transform: translate(-50%,0);
+        top: 3%;
+        height:8%;
+        z-index: 10;
+      }      
+      
+      #scanning-title {
+        position: absolute;
+        left: 50%;       
+        transform: translate(-50%,0);
+        top: 2%;
+        height:10%;
+        z-index: 10;
+        opacity:0;
+      }
+      
+      #intro-text {
+        position: absolute;
+        left: 50%;       
+        transform: translate(-50%,0);
+        bottom: 10%;
+        height:10%;
+        z-index: 12;
+      }
+      
+      #low-light-text {
+        position: absolute;
+        left: 50%;       
+        transform: translate(-50%,0);
+        bottom: 3%;
+        height:5%;
+        z-index: 12;
+        opacity: 0;
+      }
+      
+      #spinning-icon {
+        position: absolute;
+        left: 50%;       
+        transform: translate(-50%,0);
+        bottom: 50%;
+        height:20%;
+        z-index: 10;
+      }
+      
+      #scanning-text {
+        position: absolute;
+        left: 50%;       
+        transform: translate(-50%,0);
+        bottom: 23%;
+        height:9%;
+        z-index: 10;
+      }
+      
+      .floating-panel {
+        height:30%;
+        z-index: 15;
+        opacity:0;
+      }
+      
+      #floating-panel-1 {
+        position:absolute;
+        left: 58%;
+        bottom: 28%;
+      
+/*         -webkit-transform: scaleX(-1);
+        transform: scaleX(-1); */
+      }
+      
+      #floating-panel-2 {
+        position:absolute;
+        left:15%;
+        bottom: 65%;
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+      }
+      
+      #floating-panel-3 {
+        position:absolute;
+        left: 12%;
+        bottom: 40%;
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+/*         -webkit-transform: scaleX(-1);
+        transform: scaleX(-1); */
+      }
+      
+      #floating-panel-4 {
+        position:absolute;
+        left: 58%;
+        bottom: 55%;
+/*         -webkit-transform: scaleX(-1);
+        transform: scaleX(-1); */
+      }
+      
+      
+      .hidden {
+        display: none;
+      }
+      
+      .fadeout1s {
+        animation: fadeOut 1s;
+        animation-fill-mode: forwards;
+      }
+      
+      .fadein1s {
+        animation: fadeIn 1s;
+        animation-fill-mode: forwards;        
+      }
+      
+      .fadeinoutpulse {
+        animation: fadeInOut 2s linear;
+        animation-fill-mode: forwards;        
+        animation-iteration-count: 5;
+      }    
+      
+      
+      .fadeinoutflash {
+        animation: fadeInOutSlow 0.6s linear;
+        animation-fill-mode: forwards;
+      }
+      
+      
+      @keyframes fadeOut {        
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      
+      @keyframes fadeIn {        
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+      }
+      
+      @keyframes fadeInOut {        
+        0% { opacity: 0; }
+        50% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      @keyframes fadeInOutSlow {        
+        0% { opacity: 0; }
+        25% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      
+      .countdown {
+        height: 10%;
+        position:absolute;
+        z-index:15;
+        left:50%;
+        bottom: 22%;
+        transform: translate(-50%,0);
+        opacity:0;
+      }
+      
+      #flash {
+        position:absolute;
+        z-index:15;
+        height:100%;
+        bottom:0%;
+        opacity:0;
+      }
+      
+    </style>
+  </head>
+  <body>
+    
+<!--     <p>Average brightness: <span id="avg-brightness"></span></p> -->
+    
+    
+    <div id="container">
+      
+    <div id="ui-container">            
+      <div id="control">
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Start%20Button.png?v=1708505421642" id="startButton" class=""/>
+<!--         <img src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaAzGPs_sTPVbEAF1pQlEqEdL3xijGtRCOEDPIi8Mzk-9_VfI50QVLZ0sFSf9joCx9vT2bpDJkeLk-cwSWlpvrB4wdIudg=s1600" id="background"/> -->
+<!--         <img src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaB-08YZlwjTdFarxTWR7VEyZpFJ9Xpz8SpfZoRTSWNtepJTywSrqKQGYi65xKPnunxX4BEToo11WjD8MgtZsf1YDGrl=s1600" id="background-circle"/> -->
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Intro_Circle_DarkBackground_SQ___.png?v=1710310842713" id="background-combined" />
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Intro_Title.png?v=1708505421032" id="intro-title" class=""/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/HoldStill.png?v=1710309522909" id="scanning-title" class=""/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Intro_Instruction.png?v=1708505421317" id="intro-text" class=""/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Low%20Light.png?v=1708507146160" id="low-light-text" class=""/>
+<!--         <img src="https://lh3.googleusercontent.com/drive-viewer/AK7aPaD_Xr8hFmqt8DI6sw1J9pioXUSbgslIbg0xmmwLd5eY0O5g1m1qmr5C7MwUEeJl5z54mf4fUJQftFDCcpaZW8DwdCgi_w=s2560" id="spinning-icon" class="hidden"/> -->
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Scanning_Your_Face_Text.png?v=1708505422148" id="scanning-text" class="hidden"/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Horizontal_Panel.png?v=1708507339520" id="floating-panel-1" class="floating-panel"/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Square_Panel.png?v=1708507339967" id="floating-panel-2" class="floating-panel"/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Vertical_Panel.png?v=1708507340424" id="floating-panel-3" class="floating-panel"/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/Vertical_Panel.png?v=1708507340424" id="floating-panel-4" class="floating-panel"/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/1.png?v=1710305934174" id="countdown-1" class="countdown"/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/2.png?v=1710305934384" id="countdown-2" class="countdown"/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/3.png?v=1710305933809" id="countdown-3" class="countdown"/>
+        <img src="https://cdn.glitch.global/039bcd98-bd9c-471a-9c87-97eaf687fdf0/White.png?v=1710308942423" id="flash" class=""/>
+        
+      </div>
+    </div>
+      
+    <div id="screenshot-overlay">    
+      <img id="screenshot" />
+      <canvas id="canvas" > </canvas>    
+      <canvas id="offscreen-canvas" > </canvas>                     
+      <canvas id="threshold-canvas"></canvas>
+      <canvas id="t3-canvas"></canvas>
+      <canvas id="brightness-canvas"></canvas>
+    </div>
+    </div>
+     
+  </body>
+</html>
