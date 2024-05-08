@@ -710,7 +710,7 @@ startButton.addEventListener("click", () => {
 
   setTimeout(() => {
     var container = document.querySelector("#container");
-    var skinmatch = document.querySelector("#smt-questionnaire-64d43f6f0153a-holder");
+    var skinmatch = document.querySelector("#smt-root");
 
     container.classList.add("hidden");
     skinmatch.style.opacity = 1;
@@ -795,6 +795,34 @@ function receive_SMT_message(e){
 
           // If you want to do some action after the user finished
           // the questionnaire, here is the correct place to do so
+          var smt_detail_qid = "64d43f6f0153a";
+          var smt_detail_ean = "EAN_TO_MATCH"; // replace with the EAN
+          var smt_detail_lang = "en"; // replace as you see fit
+          var smt_detail_profile = localStorage.getItem('profile-'+smt_detail_qid);
+
+          var smtQuestionnaireMatchHolder = document.getElementById("smt-match-holder");
+          var smtQuestionnaireMatchBar = document.getElementById("smt-match-bar-holder");
+          var smtQuestionnaireMatchList = document.getElementById("smt-match-list");
+          if(smtQuestionnaireMatchHolder !== null && smt_detail_ean !== undefined) {
+              smtQuestionnaireMatchHolder.className = "";
+
+              jQuery.ajax({
+                  url: "https://matching.skinmatchapp.com/index.php",
+                  data: smt_detail_profile+"&ean-list="+smt_detail_ean+"&order=desc&lang="+smt_detail_lang+"&reasonWhyOrder=default",
+                  method: "POST"
+              }).done(function(results) {
+                  if(results["ean-"+smt_detail_ean].match != "undefined") {
+                      smtQuestionnaireMatchBar.innerHTML = '<div class="smt-match-bar"><div class="smt-match-bar-filler" style="width:'+results["ean-"+smt_detail_ean].match+'%"></div></div><div class="smt-match-bar-label">Skin Match Rating: '+results["ean-"+smt_detail_ean].match+'%<span class="smt-match-label-descr"> Match</span></div>';
+
+                      smtQuestionnaireMatchHolder.className += " smt-has-match";
+                      jQuery.each(results["ean-"+smt_detail_ean].reasons_why, function(i, item) {
+                          smtQuestionnaireMatchList.innerHTML += '<li class="smt-match-type-'+item.type+'">'+item.description+'</li>';
+                      });
+                  } else {
+                      smtQuestionnaireMatchHolder.className += " smt-no-match";
+                  }
+              });
+            }
       }
   }
 }
