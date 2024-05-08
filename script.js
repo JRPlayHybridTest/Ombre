@@ -707,6 +707,15 @@ startButton.addEventListener("click", () => {
   setTimeout(() => {
     floatingPanel4.classList.add("fadein1s");
   }, 13000);
+
+  setTimeout(() => {
+    var container = document.querySelector("#container");
+    var skinmatch = document.querySelector("#smt-questionnaire-64d43f6f0153a-holder");
+
+    container.classList.add("hidden");
+    skinmatch.style.opacity = 1;
+    skinmatch.style.pointerEvents = "auto";
+  }, 16000)
   
 });
 }
