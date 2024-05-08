@@ -721,3 +721,82 @@ startButton.addEventListener("click", () => {
 }
 start();
 
+function receive_SMT_message(e){
+
+  if (e.origin === 'https://getskinmatch.com' || e.origin === 'https://www.getskinmatch.com') {
+      if (typeof e.data === 'object') {
+          if('smt-profile' in e.data) {
+              var smtProfile = e.data;
+              console.log(smtProfile);
+
+              // TO DO: If you need to save the user profile data
+              // or want to do anything with it, you can do that here.
+          }
+      }
+
+      if(e.data.action == "add-to-cart") {
+          var smtEAN = e.data.ean;
+          console.log("Add "+smtEAN+" to cart");
+
+          // TO DO: Write necessary code to add the ean to the cart
+          // In case that the "add routine to cart" option is enabled, check
+          // whether you get one EAN or multiple.
+          // Multiple will be provided as a comma-separated list.
+          // You can split it by using smtEAN.split(",")
+
+      }
+
+      if(e.data.action == "add-to-wishlist") {
+          var smtEAN = e.data.ean;
+          console.log("Add "+smtEAN+" to wishlist");
+      }
+
+      if(e.data.action == "remove-from-wishlist") {
+          var smtEAN = e.data.ean;
+          console.log("Remove "+smtEAN+" from wishlist");
+      }
+
+      if(e.data.action == "smt-matching-results") {
+          // Matches are submitted as JSON once the user
+          // finishes the questionnaire. You'll get one post message
+          // per product group as set in the questionnaire configuration.
+          // The matches-JSON is NOT ordered by match-percentage.
+          // It includes the ean, match-value (0-100), match weight, and reasons-why.
+          // Sorting in the questionnaire is first by match-value and then by match weight,
+          // with higher weight resulting in a higher position.
+
+          var matchGroup = e.data.group;
+          var matches = e.data.results;
+          console.log(matches);
+      }
+
+      if(e.data.action == "next-slide") {
+          // This event fires when the user navigates to the next slide
+          // either by using the arrow-navigation or by answering a question
+          var slideIndex = e.data.slideIndex;
+      }
+
+      if(e.data.action == "previous-slide") {
+          // This event fires when the user navigates to the previous question
+          // by using the arrow-navigation
+          var slideIndex = e.data.slideIndex;
+      }
+
+      if(e.data.action == "goto-slide") {
+          // This event fires anytime a slide changes.
+          // This catches skipping around within the questionnaire by means of
+          // the progress bar navigation, as well as any regular navigation.
+          // It will fire after the next/previous events.
+          var slideIndex = e.data.slideIndex;
+      }
+
+      if(e.data == "smt-finish-questionnaire") {
+          console.log("Finished questionnaire");
+
+          // If you want to do some action after the user finished
+          // the questionnaire, here is the correct place to do so
+      }
+  }
+}
+window.addEventListener('message', receive_SMT_message, false);
+
